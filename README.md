@@ -1103,6 +1103,8 @@ ___:009FAF55
 
 ## MapleStory CRC Checks ( MSCRC )
 
+#### Please contribute to this section if you have anything to add!!!
+
 ### Crc32__GetCrc32
 Called in tSecurityCheck
 A CRC of MapleStory's memory regions to check for memory edits
@@ -1111,11 +1113,184 @@ A CRC of MapleStory's memory regions to check for memory edits
 Called in tSecurityCheck
 A CRC of MapleStory's (VM ?) memory regions to check for memory edits. Unsure
 
+
+Pseudo:
+```
+unsigned int __cdecl Crc32_GetCrc32_VMCRC(unsigned int *pmem, unsigned int size, unsigned int *pcheck, unsigned int base1, unsigned int *pCrc32, unsigned int base2)
+{
+  struct _TEB *v6; // eax
+  _DWORD *v7; // ecx
+  _DWORD *n; // eax
+  unsigned int result; // eax
+  _IMAGE_NT_HEADERS *pNtHdrs; // ST4C_4
+  struct _TEB *v11; // eax
+  _DWORD *v12; // ecx
+  _DWORD *m; // eax
+  struct _TEB *v14; // eax
+  _DWORD *v15; // ecx
+  _DWORD *j; // eax
+  struct _TEB *v17; // eax
+  _DWORD *v18; // ecx
+  _DWORD *k; // eax
+  struct _TEB *v20; // eax
+  _DWORD *v21; // ecx
+  _DWORD *l; // eax
+  unsigned int i; // [esp+8h] [ebp-3Ch]
+  int bLoopAuth; // [esp+Ch] [ebp-38h]
+  unsigned int crc32; // [esp+18h] [ebp-2Ch]
+  unsigned int checkSize; // [esp+20h] [ebp-24h]
+  int checkSizea; // [esp+20h] [ebp-24h]
+  int checkSizeb; // [esp+20h] [ebp-24h]
+  unsigned int vm; // [esp+24h] [ebp-20h]
+  unsigned int checkAddr; // [esp+2Ch] [ebp-18h]
+  int checkAddra; // [esp+2Ch] [ebp-18h]
+  unsigned int checkAddrb; // [esp+2Ch] [ebp-18h]
+
+  GetTickCount();
+  if ( (base1 ^ 0xCA618953) == (base2 ^ 0x391A586C) )
+  {
+    pNtHdrs = (_IMAGE_NT_HEADERS *)(*(_DWORD *)((base1 ^ 0xCA618953) + 0x3C) + (base1 ^ 0xCA618953));
+    checkAddr = pNtHdrs->OptionalHeader.ImageBase
+              + ((*(&pNtHdrs[1].FileHeader.PointerToSymbolTable + 10 * pNtHdrs->FileHeader.NumberOfSections)
+                - (*(&pNtHdrs[1].FileHeader.NumberOfSymbols + 10 * (pNtHdrs->FileHeader.NumberOfSections - 1))
+                 + *(&pNtHdrs[1].FileHeader.PointerToSymbolTable + 10 * (pNtHdrs->FileHeader.NumberOfSections - 1)))) ^ 0x23126032);
+    checkSize = pNtHdrs->OptionalHeader.SizeOfImage;
+    if ( (unsigned int)pmem >= checkAddr && (unsigned int)pmem < checkSize + checkAddr )
+    {
+      checkAddra = checkAddr ^ 0x37C9AE8F;
+      checkSizea = checkSize ^ 0x37C9AE8F;
+      bLoopAuth = 0;
+      if ( *pCrc32 == -1 )
+        *pCrc32 = -2125327984;
+      crc32 = *pCrc32;
+      vm = size >> 3;
+      for ( i = 0; i < size >> 2; ++i )
+      {
+        if ( i == vm )
+        {
+          if ( (base1 ^ 0xCA618953) != (base2 ^ 0x391A586C) )
+          {
+            v14 = NtCurrentTeb();
+            v15 = v14->NtTib.StackLimit;
+            for ( j = v14->NtTib.StackBase; j > v15; *j = 0 )
+              --j;
+            return 0;
+          }
+          checkAddrb = checkAddra ^ 0x37C9AE8F;
+          checkSizeb = checkSizea ^ 0x37C9AE8F;
+          if ( (unsigned int)pmem < checkAddrb || (unsigned int)pmem >= checkSizeb + checkAddrb )
+          {
+            v17 = NtCurrentTeb();
+            v18 = v17->NtTib.StackLimit;
+            for ( k = v17->NtTib.StackBase; k > v18; *k = 0 )
+              --k;
+            return 0;
+          }
+          checkSizea = 0;
+          checkAddra = 0;
+          bLoopAuth = 1;
+          *pCrc32 = ((i ^ 0x1012) + g_crc32Table[(pmem[i] ^ *pCrc32) & 0xFF]) ^ (*pCrc32 >> 8);
+          vm = i == 0 ? i : 0;
+          *pcheck = vm * *pcheck + 0x101210;
+          crc32 = *pCrc32 + 1;
+        }
+        else
+        {
+          *pCrc32 = g_crc32Table[(pmem[i] ^ *pCrc32) & 0xFF] ^ (*pCrc32 >> 8);
+        }
+      }
+      if ( bLoopAuth )
+      {
+        GetTickCount();
+        result = crc32;
+      }
+      else
+      {
+        v20 = NtCurrentTeb();
+        v21 = v20->NtTib.StackLimit;
+        for ( l = v20->NtTib.StackBase; l > v21; *l = 0 )
+          --l;
+        result = 0;
+      }
+    }
+    else
+    {
+      v11 = NtCurrentTeb();
+      v12 = v11->NtTib.StackLimit;
+      for ( m = v11->NtTib.StackBase; m > v12; *m = 0 )
+        --m;
+      result = 0;
+    }
+  }
+  else
+  {
+    v6 = NtCurrentTeb();
+    v7 = v6->NtTib.StackLimit;
+    for ( n = v6->NtTib.StackBase; n > v7; *n = 0 )
+      --n;
+    result = 0;
+  }
+  return result;
+}
+
+```
+
 ### Crc32__GetCrc32_VMTABLE
 Called regularly in CWvsApp::Run
 A CRC check against themidas VMTABLE I believe. With that being said im pretty sure if you leave binary as is and do not unpack this'll execute fine ( it does right now ).
 
-Please contribute here if you have anything to add.
+Pseudo:
+```
+unsigned int __cdecl Crc32_GetCrc32_VMTable(unsigned int *pmem, unsigned int size, unsigned int *pcheck, unsigned int *pCrc32)
+{
+  struct _TEB *v4; // eax
+  _DWORD *v5; // ecx
+  _DWORD *j; // eax
+  unsigned int result; // eax
+  unsigned int i; // [esp+0h] [ebp-1Ch]
+  int bLoopAuth; // [esp+4h] [ebp-18h]
+  unsigned int crc32; // [esp+8h] [ebp-14h]
+  unsigned int vm; // [esp+10h] [ebp-Ch]
+
+  GetTickCount();
+  bLoopAuth = 0;
+  if ( *pCrc32 == -1 )
+    *pCrc32 = 0x81521190;
+  crc32 = *pCrc32;
+  vm = size >> 3;
+  for ( i = 0; i < size >> 2; ++i )
+  {
+    if ( i == vm )
+    {
+      bLoopAuth = 1;
+      *pCrc32 = ((i ^ 0x1012) + g_crc32Table[(pmem[i] ^ *pCrc32) & 0xFF]) ^ (*pCrc32 >> 8);
+      vm = i == 0 ? i : 0;
+      *pcheck = vm * *pcheck + 1053200;
+      crc32 = *pCrc32 + 1;
+    }
+    else
+    {
+      *pCrc32 = g_crc32Table[(pmem[i] ^ *pCrc32) & 0xFF] ^ (*pCrc32 >> 8);
+    }
+  }
+  if ( bLoopAuth )
+  {
+    GetTickCount();
+    result = crc32;
+  }
+  else
+  {
+    v4 = NtCurrentTeb();
+    v5 = v4->NtTib.StackLimit;
+    for ( j = v4->NtTib.StackBase; j > v5; *j = 0 )
+      --j;
+    result = 0;
+  }
+  return result;
+}
+```
+
+
 ## CWvsContext::OnEnterField
 Ignore this super shitty pseudo analysis below until I actually solve it. PatchRetZero to skip the call. 
 This MSCRC bypass still used in v200 GMS today. However it skips some game code we need actually need !!! ( Closing UI's and other things )
