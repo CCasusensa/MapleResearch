@@ -1105,13 +1105,10 @@ ___:009FAF55
 
 #### Please contribute to this section if you have anything to add!!!
 
-### Crc32__GetCrc32
-Called in tSecurityCheck
-A CRC of MapleStory's memory regions to check for memory edits
-
 ### Crc32__GetCrc32_VMCRC
 Called in tSecurityCheck
-A CRC of MapleStory's (VM ?) memory regions to check for memory edits. Unsure
+A CRC of MapleStory's memory regions to check for memory edits
+You cannot simply swap the params to a clean copy of the memory, you need to hook and swap in the middle ( after the if statements ) 
 
 
 Pseudo:
@@ -1237,7 +1234,7 @@ unsigned int __cdecl Crc32_GetCrc32_VMCRC(unsigned int *pmem, unsigned int size,
 
 ### Crc32__GetCrc32_VMTABLE
 Called regularly in CWvsApp::Run
-A CRC check against themidas VMTABLE I believe. With that being said im pretty sure if you leave binary as is and do not unpack this'll execute fine ( it does right now ).
+A CRC check against themidas VMTABLE I believe. With that being said im pretty sure if you leave binary as is and do not unpack this'll execute fine ( it does right now )
 
 Pseudo:
 ```
